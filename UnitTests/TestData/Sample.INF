@@ -1,0 +1,105 @@
+;
+; This file is copied from the following URL, on 2013/10/25.
+;
+; Sample INF File (Windows Drivers)
+; http://msdn.microsoft.com/en-us/library/windows/hardware/ff548081.aspx
+;
+
+; ================== Version section ===========================
+
+  [Version]
+Signature   = "$Windows NT$"
+ClassGuid   = {997B5D8D-C442-4F2E-BAF3-9C8E671E9E21}
+Provider    = %MyProvider%
+DriverVer   = MM/DD/YYYY,n.n.n.n
+CatalogFile = <MyDriver>.cat
+
+; ================== Manufacturer/Models sections ==============
+
+[Manufacturer]
+%MyProvider%      = <MyDeviceSection>,NTx86,NTia64,NTamd64
+
+[<MyDeviceSection>.NTx86]
+%USB\MyDevice.DeviceDesc%    =USB_Install,U SB\VID_xxxx&PID_xxxx
+
+[<MyDeviceSection>.NTamd64]
+%USB\MyDevice.DeviceDesc%    =USB_Install,USB\VID_xxxx&PID_xxxx 
+
+; =================== USB Install section =======================
+
+[USB_Install]
+Include     = winusb.inf
+Needs       = WINUSB.NT
+CopyFiles   = UMDriverCopy
+AddProperty = DriverProperties
+
+[USB_Install.CoInstallers]
+AddReg      = WUDF_CoInstallers_AddReg
+
+[USB_Install.Wdf]
+UmdfService = <MyDriverServiceName>, <MyDriverServiceName>_Install
+UmdfServiceOrder = <MyDriverServiceName>
+UmdfImpersonationLevel = Impersonation
+UmdfDispatcher = WinUsb
+
+[USB_Install.HW]
+AddReg      = WINUSBTransport_AddReg
+
+[USB_Install.Services]
+Include      = winusb.inf
+AddService  = WUDFRd, 0x000001fa, WUDFRD_ServiceInstall
+AddService  = WinUsb, 0x000001f8, WINUSB.AddService
+
+[WINUSBTransport_AddReg]
+HKR,,"LowerFilters",0x00010008,"WinUsb" ; FLG_ADDREG_TYPE_MULTI_SZ | FLG_ADDREG_APPEND
+
+; =================== Driver Property section ==================
+
+[DriverProperties]
+DeviceIcon,,,,"%1%\<MyDriverDLLName>.dll,-<resource id>"
+{BA554A34-3371-45b5-8DE9-B45E2A33D7DC},1,18,,"%systemroot%\system32\rundll32.exe devmgr.dll,DeviceProperties_RunDLL /DeviceID %DeviceID%"
+{BA554A34-3371-45b5-8DE9-B45E2A33D7DC},2,18,,"Additional Options"
+
+; ================= UMDF Service Install section ===============
+
+[WUDF_CoInstallers_AddReg]
+HKR,,CoInstallers32,0x00010000,"WudfUpdate_01009.dll"
+
+[<MyDriverServiceName>_Install]
+UmdfLibraryVersion = 1.9.0
+ServiceBinary = "%12%\umdf\<MyDriverDLLName>.dll"
+DriverCLSID = <CLSID of class that implements IDriverEntry>
+
+[UMDriverCopy]
+<MyDriverDLLName>.dll
+
+[DestinationDirs]
+UMDriverCopy=12,UMDF    ; copy to drivers\umdf
+
+[SourceDisksFiles]
+<MyDriverDLLName>.dll=1
+
+[SourceDisksNames]
+1 = %MediaDescription%
+
+; =================== WUDFRd section =============================
+
+[WUDFRD_ServiceInstall]
+ServiceType     = %SERVICE_KERNEL_DRIVER%
+StartType       = %SERVICE_DEMAND_START%
+ErrorControl    = %SERVICE_ERROR_NORMAL%
+ServiceBinary   = %12%\WUDFRd.sys
+
+
+;
+; =================== Strings ===================
+;
+
+[Strings]
+Provider                        = "My Device Provider"
+MediaDescription                = "My Device Installation Media"
+USB\MyDevice.DeviceDesc         = "My Device Description"
+ 
+SERVICE_DEMAND_START            = 0x3 
+SERVICE_KERNEL_DRIVER           = 0x1 
+SERVICE_ERROR_NORMAL            = 0x1 
