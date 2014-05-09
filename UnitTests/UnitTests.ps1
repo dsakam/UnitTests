@@ -32,6 +32,7 @@
  #     :
  #     :
  # 2014/05/06  Version 1.0.0.0
+ # 2014/05/09  Version 1.0.1.0
  #
  #>
 #####################################################################################################################################################
@@ -115,7 +116,7 @@ $TargetModule = @(
     },
     @{
         Path = "ZipFile\ZipFile.psd1";
-        Target = $true;
+        Target = $false;
         Commands = @(
 
             # ZipFile
@@ -885,6 +886,23 @@ Test-Module $TargetModule Update-Content {
             if (([System.Management.Automation.ErrorRecord]$_).Exception -is [System.ArgumentOutOfRangeException]) { return $true }
             else { return $false }
         }
+    }
+
+
+    # Print content of the file / [+]V1.0.1.0 (2014/05/09)
+    Write-Host
+    Write-Host '$filepath =' ($filepath = ($testdata_FolderPath | Join-Path -ChildPath "Test.INI"))
+    Write-Host '$filename =' ($filename = Split-Path -Path $filepath -Leaf)
+    Write-Verbose (VERBOSE_LINE)
+    Write-Verbose (Get-Content -Path $filepath -Raw)
+    Write-Verbose (VERBOSE_LINE)
+
+    # Including empty line / [+]V1.0.1.0 (2014/05/09)
+    Test-Command (MESSAGE Update-Content, (++$i)) {
+        Write-Host
+        Write-Host (New-HR)
+        Update-Content -SearchText "ABC" -UpdateText "EFG" -InputObject (Get-Content -Path $filepath) | % { Write-Host $_ -ForegroundColor Yellow }
+        Write-Host (New-HR)
     }
 }
 
