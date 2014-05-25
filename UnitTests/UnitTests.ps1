@@ -33,9 +33,13 @@
  #     :
  # 2014/05/06  Version 1.0.0.0
  # 2014/05/09  Version 1.0.1.0
+ # 2014/05/22  Version 1.1.0.0    Always import all modules (2014/05/24)
+ #                                Add test cases for 'New-ZipFile' cmdlet. (2014/05/24)
+ #                                Change process of exception. (2014/05/25)
  #
  #>
 #####################################################################################################################################################
+'[Unit Tests for PowerShell Moduels] Script Version ' + ($version = '1.1.0.0')
 
 #####################################################################################################################################################
 # PARAMETERS
@@ -116,7 +120,7 @@ $TargetModule = @(
     },
     @{
         Path = "ZipFile\ZipFile.psd1";
-        Target = $false;
+        Target = $true;
         Commands = @(
 
             # ZipFile
@@ -202,8 +206,8 @@ Function Test-Module {
                     Write-Host ("Unit Tests of '" + $Command + "' Command")
                     Write-Host (PRINT START)
 
-                    # Do Test(s)
-                    (& $TestCode)
+                    # Do Test(s) [*]V1.1.0.0 (2014/05/22)
+                    [void](& $TestCode)
                 }
             }
         }
@@ -258,7 +262,9 @@ else { $VerbosePreference = "SilentlyContinue" }
 #####################################################################################################################################################
 # Update Modules
 $TargetModule | % {
-    if ($_.Target)
+
+    # Always import all modules / [*]V1.1.0.0 (2014/05/24)
+    if ($true)
     {
         # Validate Module Path
         if (-not (Test-Path -Path ($p = $root_FolderPath | Join-Path -ChildPath $_.'Path'))) { throw New-Object System.IO.FileNotFoundException }
@@ -460,6 +466,11 @@ if ($test_of_TestCommand)
     }
 }
 
+
+#####################################################################################################################################################
+# Unit Tests for PackageBuilder Module
+#####################################################################################################################################################
+
 #####################################################################################################################################################
 # New-GUID
 Test-Module $TargetModule New-GUID {
@@ -654,7 +665,11 @@ Test-Module $TargetModule Get-FileVersionInfo {
     Write-Host '$filename =' ($filename = Split-Path -Path $filepath -Leaf)
 
     Test-Command (MESSAGE Get-FileVersionInfo, (++$i), $filename) {
-        try { Get-FileVersionInfo -Path $filepath }
+        try
+        {
+            Get-FileVersionInfo -Path $filepath
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -668,7 +683,11 @@ Test-Module $TargetModule Get-FileVersionInfo {
     Write-Host '$filepath =' ($filepath = $testdata_FolderPath) '(Directory)'
 
     Test-Command (MESSAGE Get-FileVersionInfo, (++$i), (Split-Path -Path $filepath -Leaf)) {
-        try { Get-FileVersionInfo -Path $filepath }
+        try
+        {
+            Get-FileVersionInfo -Path $filepath
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -720,7 +739,11 @@ Test-Module $TargetModule Get-HTMLString {
     Write-Host '$filename =' ($filename = Split-Path -Path $filepath -Leaf)
 
     Test-Command (MESSAGE Get-HTMLString, (++$i), $filename) {
-        try { Get-HTMLString -Path $filepath -Tag dummy }
+        try
+        {
+            Get-HTMLString -Path $filepath -Tag dummy
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -734,7 +757,11 @@ Test-Module $TargetModule Get-HTMLString {
     Write-Host '$filepath =' ($filepath = $testdata_FolderPath) '(Directory)'
 
     Test-Command (MESSAGE Get-HTMLString, (++$i), (Split-Path -Path $filepath -Leaf)) {
-        try { Get-HTMLString -Path $filepath -Tag dummy }
+        try
+        {
+            Get-HTMLString -Path $filepath -Tag dummy
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -809,7 +836,11 @@ Test-Module $TargetModule Get-PrivateProfileString {
     Write-Host '$filename =' ($filename = Split-Path -Path $filepath -Leaf)
 
     Test-Command (MESSAGE Get-PrivateProfileString, (++$i), $filename) {
-        try { Get-PrivateProfileString -Path $filepath -Section dummy_Section -Key dummy_Key }
+        try
+        {
+            Get-PrivateProfileString -Path $filepath -Section dummy_Section -Key dummy_Key
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -823,7 +854,11 @@ Test-Module $TargetModule Get-PrivateProfileString {
     Write-Host '$filepath =' ($filepath = $testdata_FolderPath) '(Directory)'
 
     Test-Command (MESSAGE Get-PrivateProfileString, (++$i), $filename) {
-        try { Get-PrivateProfileString -Path $filepath -Section dummy_Section -Key dummy_Key }
+        try
+        {
+            Get-PrivateProfileString -Path $filepath -Section dummy_Section -Key dummy_Key
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -879,7 +914,11 @@ Test-Module $TargetModule Update-Content {
 
     # Invalid Parameter - Line is over
     Test-Command (MESSAGE Update-Content, (++$i)) {
-        try { Update-Content -Line 20 -UpdateText "dummy" -InputObject (Get-Content -Path $filepath) }
+        try
+        {
+            Update-Content -Line 20 -UpdateText "dummy" -InputObject (Get-Content -Path $filepath)
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -1184,7 +1223,11 @@ Test-Module $TargetModule Get-MD5 {
     # File Not Found
     Write-Host
     Test-Command (MESSAGE Get-MD5, (++$i)) {
-        try { Get-MD5 -Path ($filepath1 | Join-Path -ChildPath 'dummy') }
+        try
+        {
+            Get-MD5 -Path ($filepath1 | Join-Path -ChildPath 'dummy')
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -1258,7 +1301,11 @@ Test-Module $TargetModule Start-Command {
         $id = 256 + 1
         Write-Host
 
-        try { Start-Command cmd "/K", "exit $id" -Retry 3 -Interval 2 }
+        try
+        {
+            Start-Command cmd "/K", "exit $id" -Retry 3 -Interval 2
+            return $false
+        }
         catch
         {
             if ($Error[0].FullyQualifiedErrorId -eq ("0x" + ($id).ToString("x8"))) { return $true }
@@ -1371,6 +1418,8 @@ Test-Module $TargetModule New-ISOImageFile {
                 -Path $iso_Output_FilePath `
                 -VolumeID ("Test Image (" + $i + ")") `
                 -Recommended
+
+            return $false
         }
         catch
         {
@@ -1393,6 +1442,8 @@ Test-Module $TargetModule New-ISOImageFile {
                 -Path $iso_Output_FilePath `
                 -VolumeID ("Test Image (" + $i + ")") `
                 -Recommended
+
+            return $false
         }
         catch
         {
@@ -1559,7 +1610,11 @@ Test-Module $TargetModule Get-CheckSum {
     if ($Verbose) { Write-Host }
     Test-Command (MESSAGE Get-CheckSum, (++$i)) {
         if ($Verbose) { Write-Host }
-        try { Get-CheckSum -InputObject ($filepath | Join-Path -ChildPath "dummy") -BinPath ($current_FolderPath | Join-Path -ChildPath "FCIV") }
+        try
+        {
+            Get-CheckSum -InputObject ($filepath | Join-Path -ChildPath "dummy") -BinPath ($current_FolderPath | Join-Path -ChildPath "FCIV")
+            return $false
+        }
         catch
         {
             Write-Warning $_
@@ -1576,12 +1631,17 @@ Test-Module $TargetModule Send-Mail {
     Write-Host Send-MailMessage "コマンドレットがあるため実施しません。"
 }
 
+
+#####################################################################################################################################################
+# Unit Tests for ZipFile Module
+#####################################################################################################################################################
+
 #####################################################################################################################################################
 # Expand-ZipFile
 Test-Module $TargetModule Expand-ZipFile {
 
 
-    # Load [] Assembly
+    # Load 'WindowsBase' Assembly for handling 'System.IO.FileFormatException'
     try {
         [System.Reflection.Assembly]::Load('WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35')
     }
@@ -1599,7 +1659,8 @@ Test-Module $TargetModule Expand-ZipFile {
         }
 
         Write-Host
-        Write-Host 'Source Directory =' (
+        Write-Host
+        Write-Host 'Source Directory      =' (
             $zip_Source_FolderPath = ($testdata_FolderPath | Join-Path -ChildPath "ZipFile" | Join-Path -ChildPath "Archive")
         )
         Write-Host 'Destination Directory =' (
@@ -1676,7 +1737,11 @@ Test-Module $TargetModule Expand-ZipFile {
                         # Zip File is not found.
                         Test-Command (MESSAGE Expand-ZipFile, $j) {
                             Write-Host
-                            try { Expand-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath | Write-Host -ForegroundColor Yellow }
+                            try
+                            {
+                                Expand-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath | Write-Host -ForegroundColor Yellow
+                                return $false
+                            }
                             catch
                             {
                                 Write-Warning $_
@@ -1700,7 +1765,11 @@ Test-Module $TargetModule Expand-ZipFile {
                         # Target is not File (is Folder).
                         Test-Command (MESSAGE Expand-ZipFile, $j) {
                             Write-Host
-                            try { Expand-ZipFile -InputObject $zip_Source_FolderPath -Path $zip_Destination_FolderPath | Write-Host -ForegroundColor Yellow }
+                            try
+                            {
+                                Expand-ZipFile -InputObject $zip_Source_FolderPath -Path $zip_Destination_FolderPath | Write-Host -ForegroundColor Yellow
+                                return $false
+                            }
                             catch
                             {
                                 Write-Warning $_
@@ -1724,16 +1793,20 @@ Test-Module $TargetModule Expand-ZipFile {
 # New-ZipFile
 Test-Module $TargetModule New-ZipFile {
 
-    for ($i = 0; $i -lt 2; $i++)
+    for ($i = 0; $i -lt 3; $i++)
     {
         switch ($i)
         {
             0 { $zip_Destination_FolderName = "Compressed" }
             1 { $zip_Destination_FolderName = "Compressed (Shell mode)" }
+
+            # [+]V1.1.0.0 (2014/05/24)
+            2 { $zip_Destination_FolderName = "Compressed (Additinal)" }
         }
 
         Write-Host
-        Write-Host 'Source Directory =' (
+        Write-Host
+        Write-Host 'Source Directory      =' (
             $zip_Source_FolderPath = ($testdata_FolderPath | Join-Path -ChildPath "ZipFile" | Join-Path -ChildPath "Decompressed")
         )
         Write-Host 'Destination Directory =' (
@@ -1746,64 +1819,163 @@ Test-Module $TargetModule New-ZipFile {
             else { New-Item -Path $zip_Destination_FolderPath -ItemType Directory -Force }
         }
 
-        for ($j = 1; $j -le 5; $j++)
+
+        # Check for input (This comment is added at 2014/05/23.)
+        if ($i -lt 2)
         {
-            switch ($j)
+            for ($j = 1; $j -le 5; $j++)
             {
-                1 { $zip_leafpath = "01 a file (test)\test.bmp" }
-                2 { $zip_leafpath = "02 3 files including Japanese filename\日本語ファイル名.pdf" }
-                3 { $zip_leafpath = "03 a file in a folder (Lenna)"}
-                4 { $zip_leafpath = "04 3 files in a folder (RGB)"}
-                5 { $zip_leafpath = "05 misc"}
-            }
-            $zip_filepath = ($zip_Source_FolderPath | Join-Path -ChildPath "Expand-ZipFile ($j)" | Join-Path -ChildPath $zip_leafpath)
-
-            Write-Host
-            Write-Host '$zip_filepath =' $zip_filepath
-            Write-Host '$zip_leafpath =' $zip_leafpath
-
-            switch ($i)
-            {
-                0 # Compression by .NET Framework
+                switch ($j)
                 {
-                    # w/o -Force Option
-                    Test-Command (MESSAGE New-ZipFile, $j) {
-                        Write-Host
-                        (New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath) | Write-Host -ForegroundColor Yellow
-                    }
-
-                    # w/ -Force Option
-                    Test-Command (MESSAGE New-ZipFile, $j, "w/ Force option") {
-                        Write-Host
-                        (New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath -Force) | Write-Host -ForegroundColor Yellow
-                    }
+                    1 { $zip_leafpath = "01 a file (test)\test.bmp" }
+                    2 { $zip_leafpath = "02 3 files including Japanese filename\日本語ファイル名.pdf" }
+                    3 { $zip_leafpath = "03 a file in a folder (Lenna)"}
+                    4 { $zip_leafpath = "04 3 files in a folder (RGB)"}
+                    5 { $zip_leafpath = "05 misc"}
                 }
+                $zip_filepath = ($zip_Source_FolderPath | Join-Path -ChildPath "Expand-ZipFile ($j)" | Join-Path -ChildPath $zip_leafpath)
 
-                1 # Compression by Shell mode
+                Write-Host
+                Write-Host '$zip_filepath =' $zip_filepath
+                Write-Host '$zip_leafpath =' $zip_leafpath
+
+                switch ($i)
                 {
-                    if ($j -le 2)
+                    0 # Compression by .NET Framework
                     {
-                        # File
-                        Test-Command (MESSAGE New-ZipFile, "Shell mode", $j) {
+                        # w/o -Force Option
+                        Test-Command (MESSAGE New-ZipFile, $j) {
                             Write-Host
-                            (New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath -ShellMode) | Write-Host -ForegroundColor Yellow
+                            (New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath) | Write-Host -ForegroundColor Yellow
+                        }
+
+                        # w/ -Force Option
+                        Test-Command (MESSAGE New-ZipFile, $j, "w/ Force option") {
+                            Write-Host
+                            (New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath -Force) | Write-Host -ForegroundColor Yellow
                         }
                     }
-                    else
+                    1 # Compression by Shell mode
                     {
-                        # Folder
-                        Test-Command (MESSAGE New-ZipFile, "Shell mode", $j) {
-                            Write-Host
-                            try
-                            {
-                                New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath -ShellMode | Write-Host -ForegroundColor Yellow
+                        if ($j -le 2)
+                        {
+                            # File
+                            Test-Command (MESSAGE New-ZipFile, "Shell mode", $j) {
+                                Write-Host
+                                (New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath -ShellMode) | Write-Host -ForegroundColor Yellow
                             }
-                            catch
-                            {
-                                Write-Warning $Error[0].Exception
-                                if ($Error[0].CategoryInfo.Reason -eq [System.NotSupportedException].Name) { return $true }
-                                else { return $false }
+                        }
+                        else
+                        {
+                            # Folder
+                            Test-Command (MESSAGE New-ZipFile, "Shell mode", $j) {
+                                Write-Host
+                                try
+                                {
+                                    New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath -ShellMode | Write-Host -ForegroundColor Yellow
+                                    return $false
+                                }
+                                catch
+                                {
+                                    Write-Warning $Error[0].Exception
+                                    if ($Error[0].CategoryInfo.Reason -eq [System.NotSupportedException].Name) { return $true }
+                                    else { return $false }
+                                }
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        # Additional Check for output [+]V1.1.0.0 (2014/05/23)
+        else
+        {
+            foreach ($j in 1..3)
+            {
+                $k = 0
+
+                switch ($j)
+                {
+                    1 { $zip_leafpath = "Expand-ZipFile (1)\01 a file (test)\test.bmp" }
+                    2 { $zip_leafpath = "Expand-ZipFile (5)\05 misc" }
+                    3 { $zip_leafpath = "..\Compressed\日本語ファイル名.zip" }
+                }
+
+                # Copy file
+                Copy-Item `
+                    -Path ($zip_Source_FolderPath | Join-Path -ChildPath $zip_leafpath) `
+                    -Destination $zip_Destination_FolderPath `
+                    -Recurse `
+                    -Force
+
+                Write-Host
+                Write-Host
+                Write-Host ("'" + ($zip_Source_FolderPath | Join-Path -ChildPath $zip_leafpath | Convert-Path) + "' is copied to '$zip_Destination_FolderPath'.")
+
+
+                # Update $zip_filepath
+                $zip_filepath = ($zip_Destination_FolderPath | Join-Path -ChildPath (Split-Path -Path $zip_leafpath -Leaf))
+
+                Write-Host
+                Write-Host '$zip_filepath =' $zip_filepath
+                Write-Host '$zip_leafpath =' $zip_leafpath
+
+
+                if ($j -le 2)
+                {
+                    Write-Host
+                    Test-Command (MESSAGE New-ZipFile, 'Additional Test', $j, (++$k)) {
+                        Write-Host
+                        New-ZipFile $zip_filepath -Force | Write-Host -ForegroundColor Yellow
+                    }
+
+
+                    Write-Host
+                    Test-Command (MESSAGE New-ZipFile, 'Additional Test', $j, (++$k)) {
+                        Write-Host
+                        return ((New-ZipFile $zip_filepath) -eq [string]::Empty )
+                    }
+                }
+                else
+                {
+                    Write-Host
+                    Test-Command (MESSAGE New-ZipFile, 'Additional Test', $j, (++$k)) {
+                        Write-Host
+                        try
+                        {
+                            New-ZipFile -InputObject $zip_filepath -Path $zip_Destination_FolderPath | Write-Host -ForegroundColor Yellow
+                            return $false
+                        }
+                        catch
+                        {
+                            # Write-Warning $Error[0].Exception
+                            Write-Warning $_
+
+                            if ($Error[0].CategoryInfo.Reason -eq [System.ArgumentException].Name) { return $true }
+                            else { return $false }
+                        }
+                    }
+
+
+                    Write-Host
+                    Test-Command (MESSAGE New-ZipFile, 'Additional Test', $j, (++$k)) {
+                        Write-Host
+                        try
+                        {
+                            New-ZipFile -InputObject $zip_filepath -Path $zip_filepath | Write-Host -ForegroundColor Yellow
+                            return $false
+                        }
+                        catch
+                        {
+                            # Write-Warning $Error[0].Exception
+                            Write-Warning $_
+
+                            if (([System.Management.Automation.ErrorRecord]$_).Exception.InnerException.InnerException -is [System.IO.DirectoryNotFoundException])
+                            {
+                                return $true
+                            }
+                            else { return $false }
                         }
                     }
                 }
