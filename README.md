@@ -1,7 +1,7 @@
 UnitTests
 =========
 
-Unit Tests for PowerShell Modules Version **1.0.1.0**
+Unit Tests for PowerShell Modules Version **1.1.0.0**
 
 
 概要
@@ -20,6 +20,11 @@ dsakam/ZipFile および dsakam/PackageBuilder に使用しました。
 
 履歴
 ----
+
+**V1.1.0.0** (2014/05/25)  
+Always import all modules.  
+Add test cases for 'New-ZipFile' cmdlet.  
+Change process of exception.
 
 **V1.0.1.0** (2014/05/09)  
 Add test case for 'Update-Content' Cmdlet.
