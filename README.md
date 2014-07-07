@@ -1,7 +1,7 @@
 UnitTests
 =========
 
-Unit Tests for PowerShell Modules Version **1.1.0.0**
+Unit Tests for PowerShell Modules Version **1.2.0.0**
 
 
 概要
@@ -20,6 +20,9 @@ dsakam/ZipFile および dsakam/PackageBuilder に使用しました。
 
 履歴
 ----
+
+**V1.2.0.0** (2014/07/07)  
+Add test cases for 'Show-InputBox' cmdlet, and so on.  
 
 **V1.1.0.0** (2014/05/25)  
 Always import all modules.  
