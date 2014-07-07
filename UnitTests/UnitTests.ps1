@@ -36,10 +36,12 @@
  # 2014/05/22  Version 1.1.0.0    Always import all modules (2014/05/24)
  #                                Add test cases for 'New-ZipFile' cmdlet. (2014/05/24)
  #                                Change process of exception. (2014/05/25)
+ # 2014/06/22  Version 1.2.0.0    Update configuration change (PackageBuilder.Forms.psm1 is added.)
+ # 2014/07/07                     Add test case of 'Show-InputBox' CmdLet.
  #
  #>
 #####################################################################################################################################################
-'[Unit Tests for PowerShell Moduels] Script Version ' + ($version = '1.1.0.0')
+'[Unit Tests for PowerShell Moduels] Script Version ' + ($version = New-Object System.Version(1,2,0,0))
 
 #####################################################################################################################################################
 # PARAMETERS
@@ -78,7 +80,6 @@ $TargetModule = @(
             @{ Name = "New-HR"; Target = $true; },
             @{ Name = "Write-Title"; Target = $true },
             @{ Name = "Write-Boolean"; Target = $true },
-            @{ Name = "Show-Message"; Target = $true; "GUI" = $true },
             @{ Name = "Get-DateString"; Target = $true },
             @{ Name = "Get-FileVersionInfo"; Target = $true },
             @{ Name = "Get-ProductName"; Target = $true },
@@ -93,6 +94,10 @@ $TargetModule = @(
             @{ Name = "Get-ByteArray"; Target = $false },
             @{ Name = "ConvertFrom-ByteArray"; Target = $true },
             @{ Name = "ConvertTo-ByteArray"; Target = $true },
+
+            # PackageBuilder.Forms
+            @{ Name = "Show-Message"; Target = $true; "GUI" = $true },
+            @{ Name = "Show-InputBox"; Target = $true; "GUI" = $true },
 
             # PackageBuilder.Win32
             @{ Name = "Invoke-LoadLibraryEx"; Target = $true },
@@ -545,22 +550,6 @@ Test-Module $TargetModule Write-Boolean {
 }
 
 #####################################################################################################################################################
-# Show-Message
-Test-Module $TargetModule Show-Message {
-    $i = 0
-
-    Test-Command (MESSAGE Show-Message, (++$i)) {
-        Write-Host "ダイアログの OK ボタンをクリックしてください。" -ForegroundColor Magenta -NoNewline
-        Show-Message -Text "メッセージ" -Caption "タイトル"
-    }
-
-    Test-Command (MESSAGE Show-Message, (++$i)) {
-        Write-Host "ダイアログの OK ボタンをクリックしてください。" -ForegroundColor Magenta -NoNewline
-        Show-Message "Package Builder Toolkit for PowerShell"
-    }
-}
-
-#####################################################################################################################################################
 # Get-DateString
 Test-Module $TargetModule Get-DateString {
     $i = 0
@@ -942,6 +931,45 @@ Test-Module $TargetModule Update-Content {
         Write-Host (New-HR)
         Update-Content -SearchText "ABC" -UpdateText "EFG" -InputObject (Get-Content -Path $filepath) | % { Write-Host $_ -ForegroundColor Yellow }
         Write-Host (New-HR)
+    }
+}
+
+#####################################################################################################################################################
+# Show-Message
+Test-Module $TargetModule Show-Message {
+    $i = 0
+
+    Test-Command (MESSAGE Show-Message, (++$i)) {
+        Write-Host "ダイアログの OK ボタンをクリックしてください。" -ForegroundColor Magenta -NoNewline
+        (Show-Message -Text "メッセージ" -Caption "タイトル") -eq [System.Windows.Forms.DialogResult]::OK
+    }
+
+    Test-Command (MESSAGE Show-Message, (++$i)) {
+        Write-Host "ダイアログの OK ボタンをクリックしてください。" -ForegroundColor Magenta -NoNewline
+        (Show-Message "Package Builder Toolkit for PowerShell") -eq [System.Windows.Forms.DialogResult]::OK
+    }
+}
+
+#####################################################################################################################################################
+# Show-InputBox
+Test-Module $TargetModule Show-InputBox {
+    $i = 0
+
+    Test-Command (MESSAGE Show-InputBox, (++$i)) {
+        Write-Host "ダイアログの OK ボタンをクリックしてください。" -ForegroundColor Magenta -NoNewline
+        (Show-InputBox `
+            -Text "テキスト ボックスに ABC と入力して、OK ボタンをクリックしてください。" `
+            -DefaultValue "DEFAULT" `
+            -Caption "テキスト ボックス") -eq 'ABC'
+    }
+
+    $resultText = "選択肢２"
+    Test-Command (MESSAGE Show-InputBox, (++$i)) {
+        Write-Host "$resultText を選択して、ダイアログの OK ボタンをクリックしてください。" -ForegroundColor Magenta -NoNewline
+        (Show-InputBox `
+            -Text "$resultText を選択して、OK ボタンをクリックしてください。" `
+            -Selectable "選択肢１", $resultText `
+            -Caption "コンボ ボックス") -eq $resultText
     }
 }
 
